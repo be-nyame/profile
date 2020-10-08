@@ -23,7 +23,11 @@ body {
 
 @media only screen and (max-width: 600px) {
   div#container {
-     padding-bottom: 150px;
+    height: 45vh; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-bottom: 200px;
    }
 }
 
