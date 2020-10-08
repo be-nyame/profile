@@ -22,6 +22,9 @@ body {
 }
 
 @media only screen and (max-width: 600px) {
+  div#container {
+     padding-bottom: 150px;
+   }
 }
 
 
