@@ -28,6 +28,7 @@ body {
     align-items: center;
     justify-content: center;
     padding-bottom: 240px;
+    margin: auto;
 }
 
 .cover {
@@ -82,8 +83,9 @@ p {
     align-items: center;
     justify-content: center;
     padding-bottom: 240px;
-   }
+  }
 }
+
 
 
 
