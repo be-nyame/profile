@@ -1,0 +1,238 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<title>Cartoon Images</title>
+<meta http-equiv="content-type" content="text/html; charset=iso-8859-1">
+
+<link rel="stylesheet" type="text/css" href="./src/egrid.css">
+
+<link rel="stylesheet" type="text/css" href="./src/index.css">
+
+<link rel="stylesheet" type="text/css" href="./image_grid.css">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+<script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML">
+</script> 
+
+</head>
+<body>
+<div id="container">
+  <div id="header">
+    <h1>Image Cartoonization with Generative Adverserial Network
+    </h1>
+  </div>
+  <div id="wrapper">
+    <div id="content">
+      <a name="top"></a>
+      <div id="overview">
+        <h2>Overview</h2>
+        <ol>
+            <li><a href="#section" class="ref-link">Introduction</a></li>
+            <li><a href="#section2" class="ref-link"class="ref-link">GANs Discussed</a></li>
+            <li><a href="#section3" class="ref-link">White-box Representations</a></li>
+            <li><a href="#section4" class="ref-link">Learning Whit-Box Representaions with GAN</a></li>
+            <li><a href="#section5" class="ref-link">Total Loss</a></li>
+            <li><a href="#section6" class="ref-link">Final Model Output</a></li>  
+            <li><a href="#section7" class="ref-link">Results</a></li>
+        </ol>
+      </div>
+      <h3 id="section">Introduction</h3>
+      <p>This project leverages on the excellent property of Generative Adverserial Networks (GANs), i.e., their ability to produce good and quality images with similar statistics as real images in many computer vision applications. Likewise given an image, a GAN can generate nice cartoon paintings from the image (Image Cartoonization). The GAN framework continues to be an active area of research in computer vision and has led to many variants of GANs. These techniques basically further explore GANs through different model architectures, loss functions, hyperparameters, etc. 
+      <br>
+      <br>
+      In order to produce cartoon samples from images, this project employs the work of Wang et al, <a class="link" target="_blank" href="https://openaccess.thecvf.com/content_CVPR_2020/papers/Wang_Learning_to_Cartoonize_Using_White-Box_Cartoon_Representations_CVPR_2020_paper.pdf">Learning to Cartoonize Using White-box Cartoon Representations</a>. Their work explores how cartoon artists work to come up with their final products and learns a GAN framework from the techniques. Wang et al were able to discover different levels of representations of cartoon art in which the authors summarize into three, namely: surface, structure and texture representations. A GAN framework is then trained on these representations to learn to cartoonize images. 
+	    </p>
+      <h3 id="section2">GANs Discussed</h3>
+      <p>GANs, <a class="link" target="_blank" href="https://arxiv.org/abs/1406.2661">Goodfellow et al,</a> are structured probabilistic generative models that basically learn to produce samples, \(x_0\) that are intended to come from the same distribution as the observed variables, \(x\). GANs learn to model the unknown data generating process of \(x\), just like most structured probabilistic models, with a latent variable, \(z\). GANs consist of a generator function \((G)\) that is tasked with producing the expected samples, \(x_0\) and a discriminator function \((D)\) that tries to distinguish between samples produced by the generator (<i>fake samples</i>) and those of the training samples (<i>real samples</i>). Both functions need to be differentiable with respect to their inputs and model parameters; hence mostly represented by neural networks. As the generator tries to produce \(x_0\), the discriminator tends to make the generator outputs distinguishable from the real samples. Consequently, the discriminator guides the generator to eventually learn to produce samples that correspond to \(x_0\).<br>   
+      Formally, \(G\) takes \(z\) (the model's prior over latent variables, eg. Gaussian) as input, \(G(z)\), whereas the discriminator initially takes \(x\), \(D(x)\), as input and then takes \(G(z)\) as input, \(D(G(z))\). The discriminator ensures that \(D(x)\) is close to one whereas \(D(G(z))\) is close to zero.<br>
+      Considering a generalised cross-entropy loss, the discriminator loss, \(J^{(D)}\), is given by:
+          $$J^{(D)}(\theta^{(D)},\theta^{(G)}) = - \mathbb{E}_{x \sim p_{data}}logD(x) &emsp; - $$
+          \[\qquad \qquad \mathbb{E}_{x \sim p_{model}}log(1-D(G(z))\]
+      where \(\theta^{(D)}\) and \(\theta^{(G)}\) denote the discriminator and generative model parameters respectively.<br>
+      At convergence, the discriminator is discarded and the final generator model is used to produce images corresponding to \(x_0\).
+      </p>
+
+      <h3 id="section3">White-box Representations</h3>
+      <p>
+        <h4>Surface Representation</h4>
+        <p>Imagine visualizing cartoon artists make rough sketches by way of drafts to obtain smooth surfaces depicting cartoon images. Wang and Yu adopt similar concept to produce smooth surfaces without capturing textures and details. In order to achieve this, the authors adopt an edge preserving filtering method; a differentiable <a class="link" target="_blank" href="https://en.wikipedia.org/wiki/Guided_filter">guided filter</a>, \(\mathcal{F}_{dgf}\). The authors argue that \(\mathcal{F}_{dgf}\) does not only produce smooth surfaces but also keep the global semantic structure of the image.</p>
+        <h4>Structure representation</h4>
+        <p>To capture the structure, the authors first of all segment a given image into separate regions using the <a class="link" target="_blank" href="http://cs.brown.edu/people/pfelzens/papers/seg-ijcv.pdf">felzenszwalb algorithm</a> . The segmented regions are merged with selective search which is further applied to merged regions to produce a segmentation map which is sparse. In order to preserve the contrast and reduce hazing effect of the image the authors apply an adaptive coloring algorithm to results. The adaptive coloring algorithm is given by:
+          $$S_{i,j} = (\theta_1 * \bar{S} + \theta_2 * \tilde{S})^{\mu}$$
+  
+            $$\begin{equation}
+              (\theta_1, \theta_2) =
+                \begin{cases}
+                  (0,1) & \sigma(S) < \gamma_1,\\
+                  (0.5,0.5) & \gamma_1 < \sigma(S) < \gamma_2,\\
+                  (1,0) & \gamma_2 < \sigma(S).
+                \end{cases}       
+            \end{equation}$$
+        </p>
+        <h4>Textural Representation</h4>
+        <p>With the texture representation, the algorithm used is a random shift algorithm, \(\mathcal{F}_{rcs}\) which is given by:
+            $$\mathcal{F}_{rcs}(I_{rgb}) = (1-\alpha)(\beta_1*I_r+\beta_2*I_g+\beta_3*I_b)+\alpha_1*Y$$
+        where \(I_{rgb}\) denotes 3-channel \(RGB\) color images, \(I_r\), \(I_g\), \(I_b\) denote the three color channels and \(Y\), standard grayscale image obtained by converting image color from \(RGB\). \(B_1\), \(B_2\) and \(B_3\) are sampled from a uniform distribution \(U(-1, 1)\) and \(\alpha = 0.8\).</p>
+
+      </p>
+      <h3 id="section4">Learning Whit-Box Representaions with GAN</h3>
+      	<ul>
+        <li>To learn <b>surface representations</b> (\(Fig.1\)), the surface representation algorithm is applicad to both the model and reference cartoon images. A discriminator \(D_s\) is used to guide the generator to learn the surface representations of the reference cartoon images. The loss for the surface representations is given by:
+            $$\mathcal{L}_{surface}(G, D_s) = logD_s(\mathcal{F}_{dgf}(I_c,I_c)) &emsp;+$$
+          \[\qquad \qquad log(1-D_s(\mathcal{F}_{dgf}(G(I_p),G(I_P))))\]
+        where \(I_c\) denotes the reference cartoon images and \(I_p\) denotes the input photo
+        <div class="im-wrapper">
+        <div class="im-box">
+          <div class="img-format"><img src="./src/img/cart/cart1.jpg" alt="S-DCNet"></div>
+        </div>
+        <p style="text-align: center;"><b>\(Fig.1\). Data Flow in the Surface Representation Network</b>.</p>
+        </div>
+        </li>
+        <li>To formulate the <b>structure representations</b> (\(Fig.2\)), the structure method is applied to the model output and the output is passed through a pre-trained \(VGG16\) network. The pretrained network ensures a spatial structure is preserved between the generator output and the extracted structure representations. The structure loss is therefore given by:
+            $$\mathcal{L}_{structure} = ||VGG_n(G(I_P)) - VGG_n(\mathcal{F}_{st}(G(I_p)))||$$
+        <div class="im-wrapper">
+        <div class="im-box">
+          <div class="img-format"><img src="./src/img/cart/cart3.jpg" alt="S-DCNet"></div>
+        </div>
+        <p style="text-align: center;"><b>\(Fig.2\). Data Flow in the Structure Representation Network</b>.</p>
+        </div>
+        </li>
+        <li>The <b>texture representation</b> (\(Fig.3\)),  likewise the surface loss, employs a discriminator, \(D_t\), to guide the generator to learn texture representations of the reference cartoon image. In this regard, the texture representation algorithm is applied to both the model output and the reference cartoon image. The texture loss is given by:
+            $$\mathcal{L}_{texture}(G, D_t) = logD_t(\mathcal{F}_{rcs}(I_c)) &emsp;+$$
+          \[\qquad \qquad log(1-D_t(\mathcal{F}_{rcs}(G(I_p)))\]
+        <div class="im-wrapper">
+        <div class="im-box">
+          <div class="img-format"><img src="./src/img/cart/cart2.jpg" alt="S-DCNet"></div>
+        </div>
+        <p style="text-align: center;"><b>\(Fig.3\). Data Flow in the Texture Representation Network</b>.</p>
+        </div>
+        </li>
+        </ul>
+    
+      <h3 id="section5">Total Loss</h3>
+      <p>In addition to the representation losses, the authors introduce the <b>total-variation</b> \((\mathcal{L}_{tv})\) and <b>content</b> \((\mathcal{L}_{content})\) losses . The \(\mathcal{L}_{tv}\) preserves spatial smoothness and reduces high frequency noises of generated images. \(\mathcal{L}_{content}\) is computed on pre-trained outputs to ensure that the output image really represents the input image though the output image has been cartoonized. The total-variation loss is given by:
+          $$\mathcal{L}_{tv} = \frac{1}{H*W*C}||\nabla_x(G(I_p)) + \nabla_y(G(I_p))||$$
+      where \(H\), \(W\), \(C\) denote the dimensions of the image in space.<br>
+      The content loss, \(\mathcal{L}_{content}\) is also given by a sparse \(L_1\) norm:
+          $$\mathcal{L}_{content} = ||VGG_n(G(I_P)) - VGG_n(I_p)||$$
+      <br>
+      The <strong>total network loss</strong>, Ltotal, is therefore given by:
+          $$\mathcal{L}_{total} = \lambda_1 * \mathcal{L}_{surface} + \lambda_2 * \mathcal{L}_{texture} &emsp;+$$
+          \[\qquad \qquad \lambda_3 * \mathcal{L}_{structure} + \lambda_4 * \mathcal{L}_{content} + \lambda_5 * \mathcal{L}_{tv}\]
+      where \(\lambda_{1,2,..5}\) are hyperparameters that add different artistic styles.
+      </p>
+      <h3 id="section6">Final Model Output</h3>
+      <p>
+      To obtain the final generator output, a style interpolation is adopted to adjust the sharpness of the output. Again \(\mathcal{F}_{dgf}\) is used for the style interpolation. The style interpolation given by:
+          $$I_{interp} = \delta * \mathcal{F}_{dgf}(I_{in}, G(I_{in}) + (1 - \delta) * G(I_{in})$$
+      where \(I_{in}\) denotes  the network input and \(I_{out}\), the network output.
+      <div class="im-wrapper">
+        <div class="im-box">
+          <div class="img-format"><img src="./src/img/cart/cart0.jpg" alt="S-DCNet"></div>
+        </div>
+        <p style="text-align: center;"><b>\(Fig.4\) [<a class="link" target="_blank" href="https://openaccess.thecvf.com/content_CVPR_2020/papers/Wang_Learning_to_Cartoonize_Using_White-Box_Cartoon_Representations_CVPR_2020_paper.pdf">paper</a>]. Summary of Model Architecture</b>.</p>
+        </div>
+      </p>
+      <p>
+      Details of the network architecture and processes is covered the <a class="link" target="_blank" href="https://openaccess.thecvf.com/content_CVPR_2020/papers/Wang_Learning_to_Cartoonize_Using_White-Box_Cartoon_Representations_CVPR_2020_paper.pdf">paper</a>.</p>
+      
+      <h3 id="section7">Results</h3>
+      <p>In this project, test photos were taken from <a class="link" target="_blank" href="https://pixabay.com/">pixabay</a>, for copyright reasons. 
+      The codes and pre-trained weights were obtained from the <a class="link" target="_blank" href="https://github.com/dakshtrehan/White-box-Cartoonization">authors' repository</a>.
+      The pre-trained weights were applied to the following images to generate their respective cartoon representations.
+  	  </p>
+      <div style="text-align: center;">
+      <p style="font-style: italic; ">Copyright Free images downloaded from <a class="ref-link" target="_blank" href="https://pixabay.com/">pixabay</a>
+      </p>
+      </div>
+      <div class="wrap">
+	      <div class="zonen bluen grid-wrappern">
+		    <div class="boxn zonen"><img src="./src/img/cart/c1.png"></div>
+		    <div class="boxn zonen"><img src="./src/img/cart/c2.png"></div>
+		    <div class="boxn zonen"><img src="./src/img/cart/c3.png"></div>
+		    <div class="boxn zonen"><img src="./src/img/cart/c4.png"></div>
+        <div class="boxn zonen"><img src="./src/img/cart/c5.png"></div>
+        <div class="boxn zonen"><img src="./src/img/cart/c6.png"></div>
+        <div class="boxn zonen"><img src="./src/img/cart/c7.png"></div>
+        <div class="boxn zonen"><img src="./src/img/cart/c8.png"></div>
+        <div class="boxn zonen"><img src="./src/img/cart/c9.png"></div>
+        <div class="boxn zonen"><img src="./src/img/cart/c10.png"></div>
+        <div class="boxn zonen"><img src="./src/img/cart/c11.png"></div>
+        <div class="boxn zonen"><img src="./src/img/cart/c12.png"></div>
+        <div class="boxn zonen"><img src="./src/img/cart/c13.png"></div>
+	      </div> 
+        <div style="text-align: center;">
+          <p style="font-style: italic; ">Copyright Free images downloaded from <a class="ref-link" target="_blank" href="https://pixabay.com/">pixabay</a>
+          </p> 
+        </div>
+      </div>
+      <a href="#top" id="back-to-top"><p>&#8593 Back to Top</p></a>
+    </div>
+  </div>
+
+  <div id="navigation" class="bar">
+    <ul>
+      <li class="centre"><a href="index.html"  target="_blank"><p class="ref-link"><strong>Benjamin Essilfie-Nyame</strong></p></a></li>
+      <li class="centre"><a href="mailto:benessilfie60@yahoo.com" class="fa fa-yahoo"  target="_blank"></a>
+        <a href="https://github.com/be-nyame" class="fa fa-github"  target="_blank"></a>
+      </li>
+    </ul>
+  </div>
+  <div id="extra">
+    <h2>References</h2>
+
+    <h3>Papers</h3>
+      <ul>
+        <li >
+          <a class="ref-link" target="_blank" href="https://openaccess.thecvf.com/content_CVPR_2020/papers/Wang_Learning_to_Cartoonize_Using_White-Box_Cartoon_Representations_CVPR_2020_paper.pdf">Learning to Cartoonize Using White-box Cartoon Representations</a>
+        </li>
+        <li >
+          <a href="https://arxiv.org/abs/1406.2661" class="ref-link" target="_blank">Generative Adverserial Networks</a>
+        </li>
+         <li >
+          <a href="https://arxiv.org/abs/1701.00160" class="ref-link" target="_blank">NIPS 2016 Tutorial: Generative Adversarial Networks</a>
+        </li>
+        <li >
+          <a href="http://cs.brown.edu/people/pfelzens/papers/seg-ijcv.pdf" class="ref-link" target="_blank">Efficient Graph-Based Image Segmentation</a>
+        </li>
+      </ul>
+      <h3>Book</h3>
+      <ul>
+        <li>
+          Chapter 20 Deep Generative Models,
+          <a class="ref-link" href="https://www.amazon.com/Deep-Learning-Adaptive-Computation-Machine/dp/0262035618/ref=as_li_ss_tl?keywords=Deep+Learning&qid=1563148923&s=books&sr=1-1&linkCode=sl1&tag=inspiredalgor-20&linkId=6e39ca521cd3c37b4a192f0ad8cfcf8c&language=en_US">Deep Learning</a>, 2016.
+        </li>
+      </ul>
+      <h3>Blogs/Web Resources</h3>
+      <ul>
+        <li>Copyright Free image downloads,
+          <a class="ref-link" target="_blank" href="https://pixabay.com/">PixaBay</a>
+        </li>
+        <li>
+          Guided filter,
+          <a class="ref-link" target="_blank" href="https://en.wikipedia.org/wiki/Guided_filter">Wikipedia</a>.
+        </li>
+        <li>
+          Minimum spanning tree segmentation algorithms,
+          <a class="ref-link" target="_blank" href="https://en.wikipedia.org/wiki/Minimum_spanning_tree-based_segmentation">Wikipedia</a>.
+        </li>
+        <li>
+          <a href="http://cs.brown.edu/people/pfelzens/segment/" class="ref-link" target="_blank">Efficient graph-based image segmentation implementation</a>
+        </li>
+      </ul>
+
+      <h3>API / Framework</h3>
+      <ul>
+        <li>
+          <a class="ref-link" target="_blank" href="https://github.com/dakshtrehan/White-box-Cartoonization">White-box Image Cartoonization Github Repository</a>.
+        </li>
+      </ul>
+  </div>
+  <div id="footer">
+    <p>&#169; 2021 Benjamin Essilfie-Nyame.</p>
+  </div>
+</div>
+</body>
+</html>
