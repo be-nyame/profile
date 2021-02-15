@@ -79,7 +79,7 @@
       </p>
       <h3 id="section4">Learning White-Box Representaions with GAN</h3>
       	<ul>
-        <li>To learn <b>surface representations</b> (\(Fig.1\)), the surface representation algorithm is applicad to both the model and reference cartoon images. A discriminator \(D_s\) is used to guide the generator to learn the surface representations of the reference cartoon images. The loss for the surface representations is given by:
+        <li>To learn <b>surface representations</b> (\(Fig.1\)), the surface representation algorithm is applied to both the model and reference cartoon images. A discriminator \(D_s\) is used to guide the generator to learn the surface representations of the reference cartoon images. The loss for the surface representations is given by:
             $$\mathcal{L}_{surface}(G, D_s) = logD_s(\mathcal{F}_{dgf}(I_c,I_c)) &emsp;+$$
           \[\qquad \qquad log(1-D_s(\mathcal{F}_{dgf}(G(I_p),G(I_P))))\]
         where \(I_c\) denotes the reference cartoon images and \(I_p\) denotes the input photo
