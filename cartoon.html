@@ -118,7 +118,7 @@
       The content loss, \(\mathcal{L}_{content}\) is also given by a sparse \(L_1\) norm:
           $$\mathcal{L}_{content} = ||VGG_n(G(I_P)) - VGG_n(I_p)||$$
       <br>
-      The <strong>total network loss</strong>, Ltotal, is therefore given by:
+      The <strong>total network loss</strong>, \(\mathcal{L}_{total}\), is therefore given by:
           $$\mathcal{L}_{total} = \lambda_1 * \mathcal{L}_{surface} + \lambda_2 * \mathcal{L}_{texture} &emsp;+$$
           \[\qquad \qquad \lambda_3 * \mathcal{L}_{structure} + \lambda_4 * \mathcal{L}_{content} + \lambda_5 * \mathcal{L}_{tv}\]
       where \(\lambda_{1,2,..5}\) are hyperparameters that add different artistic styles.
