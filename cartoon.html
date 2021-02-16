@@ -32,7 +32,7 @@
             <li><a href="#section" class="ref-link">Introduction</a></li>
             <li><a href="#section2" class="ref-link"class="ref-link">GANs Discussed</a></li>
             <li><a href="#section3" class="ref-link">White-box Representations</a></li>
-            <li><a href="#section4" class="ref-link">Learning White-Box Representaions with GAN</a></li>
+            <li><a href="#section4" class="ref-link">Learning White-Box Representations with GAN</a></li>
             <li><a href="#section5" class="ref-link">Total Loss</a></li>
             <li><a href="#section6" class="ref-link">Final Model Output</a></li>  
             <li><a href="#section7" class="ref-link">Results</a></li>
@@ -77,7 +77,7 @@
         where \(I_{rgb}\) denotes 3-channel \(RGB\) color images, \(I_r\), \(I_g\), \(I_b\) denote the three color channels and \(Y\), standard grayscale image obtained by converting image color from \(RGB\). \(B_1\), \(B_2\) and \(B_3\) are sampled from a uniform distribution \(U(-1, 1)\) and \(\alpha = 0.8\).</p>
 
       </p>
-      <h3 id="section4">Learning White-Box Representaions with GAN</h3>
+      <h3 id="section4">Learning White-Box Representations with GAN</h3>
       	<ul>
         <li>To learn <b>surface representations</b> (\(Fig.1\)), the surface representation algorithm is applied to both the model and reference cartoon images. A discriminator \(D_s\) is used to guide the generator to learn the surface representations of the reference cartoon images. The loss for the surface representations is given by:
             $$\mathcal{L}_{surface}(G, D_s) = logD_s(\mathcal{F}_{dgf}(I_c,I_c)) &emsp;+$$
